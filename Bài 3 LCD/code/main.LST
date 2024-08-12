@@ -1,0 +1,193 @@
+A51 MACRO ASSEMBLER  MAIN                                                                 10/13/2017 16:35:50 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.01
+OBJECT MODULE PLACED IN main.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE main.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1      ;==========================   
+                       2      ; Hien thi LCD   
+                       3      ;==========================    
+                       4      $mod51  
+                       5      
+  001F                 6       U equ 31         ; memory location to hold upper nibble   
+  0015                 7       L equ 21        ; memory location to hold lower nibble     
+  0080                 8       Port equ P0       ; data port to connect LCD   
+  00A6                 9       RS equ P2.6     ; RS pin connection   
+  00A5                10       RW equ P2.5     ; RW pin connection   
+  00A7                11       EN equ P2.7     ; EN pin connection  
+                      12       ;============================   
+                      13       ; Connection of Port   
+                      14       ; Port.4 = DB4   
+                      15       ; Port.5 = DB5   
+                      16       ; Port.6 = DB6   
+                      17       ; Port.7 = DB7 
+                      18       ;============================ 
+                      19      
+                      20      
+                      21     
+                      22      
+                      23     SS MACRO L1  
+                      24     MOV R1,#0  
+                      25     MOV DPTR,L1  
+                      26     LCALL lcd_puts 
+                      27     ENDM 
+                      28      ;===========================   
+0000                  29      ORG 0000h   
+0000 C2A5             30      CLR RW   
+0002 1158             31      ACALL init   
+                      32      SS #STRING1   
+000C 74C0             36      MOV A, #0c0H        ; switch to 2nd line of LCD   
+000E 113E             37      ACALL lcd_cmd    
+                      38      SS #STRING2   
+0018 80FE             42      SJMP $      ; INFINITE LONG LOOP 
+                      43      ;=========================== 
+                      44      ; Separator 
+                      45      ;===========================    
+001A                  46      separator:    
+001A F51F             47      MOV U,A       ; save A at temp location U    
+001C 531FF0           48      ANL U,#0F0H    ; mask it  with 0Fh (28h & F0h = 20h)    
+001F C4               49      SWAP A         ; swap nibble (28h => 82H)    
+0020 54F0             50      ANL A,#0F0H   ; mask it with 0fh (82h & f0h = 80h)    
+0022 F515             51      MOV L,A        ; save it at temp location L    
+0024 22               52      RET             ; return ;========================  
+                      53      ; Move To Port 
+                      54      ; MOV port,A       
+                      55      ; put content of A to port 
+                      56      ; ANL port,#0x0FH 
+                      57      ; ORL port,A 
+                      58      ;========================    
+0025                  59      move_to_Port:    
+0025 A2E4             60      MOV C,Acc.4    
+0027 9284             61      MOV port.4,C    
+0029 A2E5             62      MOV C,Acc.5    
+002B 9285             63      MOV port.5,C    
+002D A2E6             64      MOV C,Acc.6    
+A51 MACRO ASSEMBLER  MAIN                                                                 10/13/2017 16:35:50 PAGE     2
+
+002F 9286             65      MOV port.6,C    
+0031 A2E7             66      MOV C,Acc.7    
+0033 9287             67      MOV port.7,C        
+0035 D2A7             68      SETB EN      ; make EN high    
+0037 1187             69      ACALL DELAY    ; call a short delay routine    
+0039 C2A7             70      CLR EN       ; clear EN    
+003B 1187             71      ACALL DELAY    ; short delay    
+003D 22               72      RET       
+                      73      ; return       
+                      74      ;================================= 
+                      75     
+                      76      
+                      77      
+                      78      
+                      79     ;LCD command 
+                      80     ;=================================    
+003E                  81     lcd_cmd:     
+003E C2A6             82     CLR RS       ; clear rs, going to send command     
+0040 111A             83     ACALL separator     ; separate the command and save to U and L     
+0042 E51F             84     MOV A, U      ; copy U to A     
+0044 1125             85     ACALL move_to_port  ; move content of a to port     
+0046 E515             86     MOV A, L             ; copy L to A     
+0048 1125             87     ACALL move_to_port  ; move content of a to port     
+004A 22               88     RET         
+                      89     ; return 
+                      90     ;================================= 
+                      91     ; LCD data 
+                      92     ;=================================   
+004B                  93     lcd_data:    
+004B D2A6             94     SETB RS             ; RS=1, going to send DATA    
+004D 111A             95     ACALL separator     ; separate the data and save to U & L    
+004F E51F             96     MOV A, U            ; copy U to A    
+0051 1125             97     ACALL move_to_port  ; send it to LCD    
+0053 E515             98     MOV A, L            ; copy L to A    
+0055 1125             99     ACALL move_to_port  ; send it to LCD    
+0057 22              100     RET                 ; return 
+                     101     ;================================= 
+                     102     ; Initilization 
+                     103     ;=================================  
+0058                 104     init:    
+0058 1187            105     ACALL delay      ; some delay to lcd after power on    
+005A 1187            106     ACALL delay    
+005C C284            107     CLR port.4    
+005E D285            108     SETB port.5    
+0060 C286            109     CLR port.6    
+0062 C287            110     CLR port.7     ; send 20h to LCD to set 4 bit mode    
+0064 C2A6            111     CLR RS     ; after that we can use lcd_cmd    
+0066 D2A7            112     SETB EN          ; make EN switching    
+0068 1187            113     ACALL delay    
+006A C2A7            114     CLR EN    
+006C 7428            115     MOV A, #28H    
+006E 113E            116     ACALL lcd_cmd    
+0070 740C            117     MOV A, #0CH    
+0072 113E            118     ACALL lcd_cmd    
+0074 7406            119     MOV A, #06H   
+0076 113E            120     ACALL lcd_cmd    
+0078 7401            121     MOV A, #01H    
+007A 113E            122     ACALL lcd_cmd    
+007C 22              123     RET 
+                     124     ;================================= 
+007D                 125     lcd_puts: 
+                     126     
+                     127      
+                     128     
+                     129      
+007D E9              130      MOV A,R1  
+A51 MACRO ASSEMBLER  MAIN                                                                 10/13/2017 16:35:50 PAGE     3
+
+007E 93              131      MOVC A,@A+DPTR   
+007F 12004B          132      LCALL lcd_data  
+0082 09              133      INC R1  
+0083 B90FF7          134      CJNE R1,#15,lcd_puts  
+0086 22              135      RET 
+                     136      ;=================================  
+0087                 137      delay:    
+0087 7E5F            138      MOV R6, #5FH   
+0089 7F3F            139      L2: MOV R7,#3FH   
+008B DFFE            140      L1: DJNZ R7, L1    
+008D DEFA            141      DJNZ R6, L2    
+008F 22              142      RET ;================================= 
+0090 20202056        143      STRING1: DB '   VI XU LY  ' 
+0094 49205855                
+0098 204C5920                
+009C 20                      
+009D 3D3D5445        144      STRING2: DB '==TEST PROGRAM=='  
+00A1 53542050                
+00A5 524F4752                
+00A9 414D3D3D                
+                     145      
+                     146     end 
+A51 MACRO ASSEMBLER  MAIN                                                                 10/13/2017 16:35:50 PAGE     4
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+ACC. . . . . . . .  D ADDR   00E0H   A   
+DELAY. . . . . . .  C ADDR   0087H   A   
+EN . . . . . . . .  B ADDR   00A0H.7 A   
+INIT . . . . . . .  C ADDR   0058H   A   
+L. . . . . . . . .  N NUMB   0015H   A   
+L1 . . . . . . . .  C ADDR   008BH   A   
+L2 . . . . . . . .  C ADDR   0089H   A   
+LCD_CMD. . . . . .  C ADDR   003EH   A   
+LCD_DATA . . . . .  C ADDR   004BH   A   
+LCD_PUTS . . . . .  C ADDR   007DH   A   
+MOVE_TO_PORT . . .  C ADDR   0025H   A   
+P0 . . . . . . . .  D ADDR   0080H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+PORT . . . . . . .  D ADDR   0080H   A   
+RS . . . . . . . .  B ADDR   00A0H.6 A   
+RW . . . . . . . .  B ADDR   00A0H.5 A   
+SEPARATOR. . . . .  C ADDR   001AH   A   
+STRING1. . . . . .  C ADDR   0090H   A   
+STRING2. . . . . .  C ADDR   009DH   A   
+U. . . . . . . . .  N NUMB   001FH   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

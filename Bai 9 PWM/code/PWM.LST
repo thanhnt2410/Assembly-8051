@@ -1,0 +1,112 @@
+A51 MACRO ASSEMBLER  PWM                                                                  08/12/2024 23:32:54 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.7.0
+OBJECT MODULE PLACED IN PWM.OBJ
+ASSEMBLER INVOKED BY: E:\thanh\Keil C\C51\BIN\A51.EXE PWM.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;=================================
+                       2     ; tao xung vuong
+                       3     ;=================================
+                       4     ;tan so thach anh 11.0592MHz
+                       5     ;=================================
+                       6     ; su dung timer0 mode 2 de tao tan so xung vuong f=5kHz
+                       7     ;=================================
+                       8     ; org 0
+                       9     
+                      10     ;ljmp main
+                      11     ;org 0bh
+                      12     ;ljmp interupt_timer0
+                      13     ;org 800h
+                      14     ;main:
+                      15     ;mov tmod,#2
+                      16     ;mov tl0,#0Cah
+                      17     ;mov th0,#0Cah
+                      18     ;setb tr0                  ;
+                      19     ;setb et0                       ;
+                      20     ;setb ea                                ; 
+                      21     ;sjmp $
+                      22     ;interupt_timer0:
+                      23     ;cpl p0.5 ;dao chan p2.0
+                      24     ;reti
+                      25     ;end
+                      26             
+                      27     ;================================= 
+                      28     ; tao xung vuong voi nut nhan
+                      29     ;=================================
+                      30     ; tan so thach anh 11.0592MHz
+                      31     ;=================================
+                      32     ; su dung timer0 mode 2 de tao tan so xung vuong f=5kHz
+                      33     ;=================================
+                      34     
+0000                  35     org 0
+0000 020800           36     ljmp main
+                      37     
+000B                  38     org 0bh
+000B 020823           39     ljmp interupt_timer0
+                      40     
+0800                  41     org 800h
+                      42     
+0800                  43     main:
+0800 758902           44         mov tmod,#2          ; Timer0 mode 2
+0803 758ACA           45         mov tl0,#0cah
+0806 758CCA           46         mov th0,#0cah
+0809 75A000           47         mov p2,#0            ; Kh?i t?o P2 = 0
+080C D2AF             48         setb ea              ; Enable global interrupt
+080E D2A9             49         setb et0             ; Enable Timer0 interrupt
+0810 C28C             50         clr tr0              ; Kh?i d?u: Timer0 t?t
+                      51     
+0812                  52     loop:
+0812 20B2FD           53         jb p3.2, $           ; Ð?i nút nh?n
+0815 1126             54         call delay_debounce  ; Ch? ch?ng d?i
+0817 20B2F8           55         jb p3.2, loop        ; N?u v?n cao, quay l?i d?i
+081A B28C             56         cpl tr0              ; Ð?o tr?ng thái Timer0 (b?t/t?t)
+081C 30B2FD           57         jnb p3.2, $          ; Ð?i nh? nút
+081F 1126             58         call delay_debounce  ; Ch? ch?ng d?i
+A51 MACRO ASSEMBLER  PWM                                                                  08/12/2024 23:32:54 PAGE     2
+
+0821 80EF             59         sjmp loop
+                      60     
+0823                  61     interupt_timer0:
+0823 B285             62         cpl p0.5             ; Ð?o tr?ng thái P2.0
+0825 32               63         reti
+                      64     
+0826                  65     delay_debounce:
+0826 7F32             66         mov r7, #50
+0828                  67     delay_loop:
+0828 7EC8             68         mov r6, #200
+082A DEFE             69         djnz r6, $
+082C DFFA             70         djnz r7, delay_loop
+082E 22               71         ret
+                      72     
+                      73     end
+A51 MACRO ASSEMBLER  PWM                                                                  08/12/2024 23:32:54 PAGE     3
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+DELAY_DEBOUNCE . .  C ADDR   0826H   A   
+DELAY_LOOP . . . .  C ADDR   0828H   A   
+EA . . . . . . . .  B ADDR   00A8H.7 A   
+ET0. . . . . . . .  B ADDR   00A8H.1 A   
+INTERUPT_TIMER0. .  C ADDR   0823H   A   
+LOOP . . . . . . .  C ADDR   0812H   A   
+MAIN . . . . . . .  C ADDR   0800H   A   
+P0 . . . . . . . .  D ADDR   0080H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
